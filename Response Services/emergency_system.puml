@@ -1,0 +1,111 @@
+@startuml Emergency_Response_System
+
+' Use more readable colors and styling
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    ArrowColor #1976D2
+    FontSize 14
+    AttributeFontSize 12
+}
+skinparam note {
+    BackgroundColor #FFF9C4
+    BorderColor #FBC02D
+    FontSize 12
+}
+
+' Main system components with simplified descriptions
+class "Main System" as Main {
+    + Start the application
+    + Handle user input
+}
+
+class "Resource Manager" as Allocator {
+    + Add new emergency incidents
+    + Add available resources
+    + Calculate closest resources
+    + Assign resources to incidents
+    + Update incident priorities
+}
+
+class "Emergency Incident" as Incident {
+    + Incident ID
+    + Location
+    + Type of emergency
+    + Priority level
+    + Current status
+    + Required resources
+}
+
+class "Emergency Resource" as Resource {
+    + Resource ID
+    + Type (e.g., Ambulance)
+    + Current location
+    + Current assignment
+}
+
+class "Data Storage" as SessionStorage {
+    + Save current state
+    + Load previous state
+    + List saved sessions
+}
+
+class "Display Interface" as DisplayManager {
+    + Show all incidents
+    + Show all resources
+}
+
+' Simplified relationships
+Main --> Allocator : "controls"
+Main --> DisplayManager : "uses"
+Main --> SessionStorage : "uses"
+
+Allocator "1" *-- "many" Incident : "manages"
+Allocator "1" *-- "many" Resource : "manages"
+
+Incident "many" -- "many" Resource : "needs/uses"
+
+DisplayManager ..> Allocator : "shows data from"
+SessionStorage ..> Allocator : "saves/loads"
+
+' Clear, business-focused notes
+note right of Incident
+  <b>Emergency Priority Levels:</b>
+  • High - Immediate response needed
+  • Medium - Response needed soon
+  • Low - Can be queued
+
+  <b>Status:</b>
+  • Pending - Waiting for resources
+  • Assigned - Resources dispatched
+end note
+
+note right of Resource
+  <b>Available Resource Types:</b>
+  • Ambulances
+  • Fire Trucks
+  • Police Cars
+
+  Resources are assigned based on:
+  • Emergency priority
+  • Distance to incident
+  • Current availability
+end note
+
+note right of Allocator
+  <b>How Resources are Allocated:</b>
+  1. High priority incidents get resources first
+  2. Closest available resources are chosen
+  3. Resources can be reassigned from
+     lower to higher priority incidents
+end note
+
+note right of SessionStorage
+  <b>System Memory:</b>
+  • Saves all current emergency details
+  • Keeps track of resource locations
+  • Maintains history of decisions
+  • Can restore previous states
+end note
+
+@enduml 
