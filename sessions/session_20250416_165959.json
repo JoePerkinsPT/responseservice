@@ -1,0 +1,26 @@
+{
+    "incidents": [
+        {
+            "id": "1",
+            "location": "Zone 1",
+            "type": "Fire",
+            "priority": "High",
+            "status": "Pending",
+            "required_resources": [
+                [
+                    "Ambulance",
+                    2
+                ]
+            ]
+        }
+    ],
+    "resources": [
+        {
+            "id": "A1",
+            "type": "Ambulance",
+            "location": "Zone 1",
+            "assigned_to": "1"
+        }
+    ],
+    "timestamp": "20250416_165959"
+}

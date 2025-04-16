@@ -3,6 +3,7 @@ import pytest
 from incident import Incident
 from resource import Resource
 from allocator import Allocator
+from session_storage import SessionStorage
 
 class TestEmergencySystem(unittest.TestCase):
     def setUp(self):
@@ -88,6 +89,23 @@ class TestEmergencySystem(unittest.TestCase):
         self.allocator.allocate_resources()
         self.assertFalse(self.resource1.is_available)
         self.assertEqual(self.incident1.assigned_resources, [self.resource1])
+
+    def test_session_persistence(self):
+        # Add incident that needs 2 ambulances
+        self.allocator.add_incident(self.incident1)
+        # Add both required ambulances
+        self.allocator.add_resource(self.resource1)
+        self.allocator.add_resource(self.resource3)
+        self.allocator.allocate_resources()
+        
+        storage = SessionStorage()
+        storage.save_state(self.allocator)
+        new_allocator = Allocator()
+        storage.load_state(new_allocator)
+        
+        self.assertEqual(len(new_allocator.get_incidents()), 1)
+        self.assertEqual(len(new_allocator.get_incidents()[0].assigned_resources), 2)
+        self.assertEqual(new_allocator.get_incidents()[0].status, "Assigned")
 
     # New Test Case
     def test_multiple_resources_insufficient(self):

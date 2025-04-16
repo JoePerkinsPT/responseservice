@@ -63,7 +63,6 @@ class SessionStorage:
             session_file: Optional specific session file to load
         """
         if session_file is None:
-            # Get most recent session file
             files = self._get_session_files()
             if not files:
                 raise ValueError("No saved sessions found")
@@ -78,7 +77,8 @@ class SessionStorage:
         allocator.incidents.clear()
         allocator.resources.clear()
         
-        # Load incidents first
+        # Create incidents first
+        incidents_map = {}
         from incident import Incident
         for inc_data in state["incidents"]:
             incident = Incident(
@@ -88,10 +88,10 @@ class SessionStorage:
                 inc_data["priority"],
                 inc_data["required_resources"]
             )
-            incident.status = inc_data["status"]
+            incidents_map[inc_data["id"]] = incident
             allocator.add_incident(incident)
         
-        # Then load resources and their assignments
+        # Create and assign resources
         from resource import Resource
         for res_data in state["resources"]:
             resource = Resource(
@@ -99,13 +99,25 @@ class SessionStorage:
                 res_data["type"],
                 res_data["location"]
             )
-            if res_data["assigned_to"]:
-                # Find the incident this resource was assigned to
-                for incident in allocator.get_incidents():
-                    if incident.id == res_data["assigned_to"]:
-                        resource.assign(incident)
-                        break
             allocator.add_resource(resource)
+            if res_data["assigned_to"] and res_data["assigned_to"] in incidents_map:
+                incident = incidents_map[res_data["assigned_to"]]
+                resource.assign(incident)
+
+        # Update incident statuses based on resource requirements
+        for inc_data in state["incidents"]:
+            incident = incidents_map[inc_data["id"]]
+            required_counts = {r_type: count for r_type, count in incident.required_resources}
+            assigned_counts = {}
+            for resource in incident.assigned_resources:
+                assigned_counts[resource.type] = assigned_counts.get(resource.type, 0) + 1
+            
+            # Set status based on whether all required resources are assigned
+            if all(assigned_counts.get(r_type, 0) >= count 
+                  for r_type, count in required_counts.items()):
+                incident.status = "Assigned"
+            else:
+                incident.status = "Pending"
         
         return state["timestamp"]
 
