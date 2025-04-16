@@ -1,0 +1,56 @@
+@startuml
+' Simplified UML for Emergency Resource Allocation System
+
+' Classes
+class Allocator {
+  -incidents: List[Incident]
+  -resources: List[Resource]
+  +add_incident(incident)
+  +add_resource(resource)
+  +allocate_resources()
+  +reallocate_resources(incident)
+}
+
+interface IncidentInterface {
+  +update_priority(priority)
+}
+
+class Incident {
+  -id: str
+  -priority: str
+  -resources: List[Resource]
+  +update_priority(priority)
+}
+
+interface ResourceInterface {
+  +assign(incident)
+}
+
+class Resource {
+  -id: str
+  -type: str
+  -assigned_to: Incident
+  +assign(incident)
+  +release()
+}
+
+class DisplayManager {
+  +display_incidents(allocator)
+  +display_resources(allocator)
+}
+
+' Relationships
+IncidentInterface <|.. Incident
+ResourceInterface <|.. Resource
+Allocator o--> "many" Incident
+Allocator o--> "many" Resource
+Incident o--> "many" Resource : assigned_resources
+Resource --> "0..1" Incident : assigned_to
+DisplayManager --> Allocator
+
+note right of Allocator
+  Manages resource allocation using a
+  priority queue (heap) with timestamp
+end note
+
+@enduml

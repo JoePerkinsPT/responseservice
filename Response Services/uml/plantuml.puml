@@ -1,0 +1,72 @@
+@startuml
+class Allocator {
+  -incidents: List[Tuple[int, datetime, Incident]]
+  -all_incidents: List[Incident]
+  -resources: List[Resource]
+  +__init__()
+  +get_incidents(): List[Incident]
+  +setup_logging()
+  +add_incident(incident: Incident)
+  +add_resource(resource: Resource)
+  +calculate_proximity(incident_location: str, resource_location: str): int
+  +allocate_resources()
+  +reallocate_resources(new_incident: Incident)
+  +update_incident_priority(incident_id: str, new_priority: str)
+}
+
+interface IncidentInterface {
+  +update_priority(new_priority: str)
+}
+
+class Incident {
+  -id: str
+  -location: str
+  -type: str
+  -priority: str
+  -required_resources: List[Tuple[str, int]]
+  -assigned_resources: List[Resource]
+  -timestamp: datetime
+  -status: str
+  -VALID_PRIORITIES: Set[str]
+  +__init__(id: str, location: str, type: str, priority: str, required_resources: List[Tuple[str, int]])
+  -_validate_inputs()
+  +allocate_resource(resource: Resource)
+  +release_resource(resource: Resource)
+  +is_allocated(): bool
+  +update_status(new_status: str)
+  +update_priority(new_priority: str)
+  +get_status(): str
+  +__lt__(other: Incident): bool
+}
+
+interface ResourceInterface {
+  +assign(incident: Incident)
+}
+
+class Resource {
+  -id: str
+  -type: str
+  -location: str
+  -assigned_to: Optional[Incident]
+  +__init__(id: str, type: str, location: str)
+  +is_available: bool
+  -_validate_inputs()
+  +assign(incident: Incident)
+  +release()
+  +__str__(): str
+}
+
+class DisplayManager {
+  +display_incidents(allocator: Allocator)
+  +display_resources(allocator: Allocator)
+}
+
+IncidentInterface <|.. Incident
+ResourceInterface <|.. Resource
+Allocator o--> "many" Incident : all_incidents
+Allocator o--> "many" Resource : resources
+Incident o--> "many" Resource : assigned_resources
+Resource --> "0..1" Incident : assigned_to
+DisplayManager --> Allocator
+
+@enduml
